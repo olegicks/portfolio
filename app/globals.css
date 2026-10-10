@@ -6,6 +6,9 @@
   --color-muted: #8a9ab3;
   --color-contour: #7f98bc;
   --color-signal: #f2b33d;
+  --color-ok: #6fd1a8;
+  --color-alert: #ef6b5b;
+  --color-panel: #14243b;
   --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
 }

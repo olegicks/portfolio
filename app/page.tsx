@@ -1,16 +1,18 @@
 import Hero from "@/components/hero/Hero";
+import Projects from "@/components/projects/Projects";
 
 export default function Home() {
   return (
     <main id="top">
       <Hero />
+      <Projects />
 
-      {/* Temporary: gives the page room to scroll so you can test the hero exit */}
+      {/* Temporary: About and Contact come next */}
       <section
-        id="projects"
-        className="flex min-h-screen items-center justify-center text-muted"
+        id="about"
+        className="flex min-h-[60vh] items-center justify-center text-muted"
       >
-        Projects section comes next
+        About and contact come next
       </section>
     </main>
   );

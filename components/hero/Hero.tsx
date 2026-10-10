@@ -26,6 +26,7 @@ export default function Hero() {
 
         if (reduce) {
           intro.current.value = 1;
+          ScrollTrigger.refresh();
           return;
         }
 
@@ -49,8 +50,8 @@ export default function Hero() {
               yPercent: 120,
               rotate: 7,
               transformOrigin: "0% 100%",
-              duration: 1.6,
-              stagger: 0.04,
+              duration: 1.5,
+              stagger: 0.03,
             },
             0.3,
           )
@@ -62,12 +63,12 @@ export default function Hero() {
               stagger: 0.09,
               onComplete: () => lead.revert(),
             },
-            1.05,
+            0.85,
           )
           .from(
             ".hero-fade",
             { autoAlpha: 0, y: 16, duration: 1.1, stagger: 0.07 },
-            1.25,
+            1.15,
           );
 
         // Scroll exit
@@ -78,7 +79,7 @@ export default function Hero() {
           scrub: true,
         };
         gsap.to(".hero-name", {
-          yPercent: -18,
+          yPercent: -40,
           ease: "none",
           scrollTrigger: scrub,
         });
@@ -94,9 +95,11 @@ export default function Hero() {
           ease: "none",
           scrollTrigger: scrub,
         });
+
+        // Fonts can change layout heights, so re-measure all scroll positions
+        ScrollTrigger.refresh();
       });
 
-      // Split text only after fonts load, so line breaks are measured correctly
       document.fonts.ready.then(build);
     },
     { scope: root },
@@ -112,7 +115,7 @@ export default function Hero() {
       </div>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-night/90 to-transparent" />
 
-      <div className="relative z-10 flex h-full flex-col justify-between px-[clamp(1.25rem,4vw,3.5rem)] pb-[clamp(1.5rem,4vh,3rem)] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
+      <div className="relative z-10 flex h-full flex-col justify-between px-[clamp(1.25rem,4vw,3.5rem)] pb-[clamp(1.5rem,5vh,3.5rem)] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         <header className="hero-fade flex items-center justify-between">
           <a
             href="#top"
@@ -137,21 +140,19 @@ export default function Hero() {
         </header>
 
         <div>
-          <h1 className="hero-name font-display text-[clamp(3.5rem,15.5vw,16rem)] font-semibold leading-[0.84] tracking-[-0.05em]">
-            {/* Each line clips its letters; the padding keeps descenders visible */}
-            <span className="hero-name-line -mb-[0.12em] block overflow-hidden pb-[0.12em]">
-              Oleh
-            </span>
-            <span className="hero-name-line -mb-[0.12em] block overflow-hidden pb-[0.12em]">
-              Shynkaryk
+          <h1 className="hero-name font-display text-[clamp(2.75rem,7.5vw,7rem)] font-semibold leading-[0.9] tracking-[-0.04em]">
+            {/* The line clips its letters; the padding keeps descenders visible */}
+            <span className="hero-name-line -mb-[0.14em] block overflow-hidden pb-[0.14em]">
+              Oleh Shynkaryk
             </span>
           </h1>
 
-          <div className="hero-meta mt-8 grid gap-6 md:mt-10 md:grid-cols-[minmax(0,38ch)_1fr] md:items-end">
-            <p className="hero-lead max-w-[38ch] text-lg leading-relaxed text-paper/85 md:text-xl">
-              Computer science student at the University of Vienna. I build
-              machine-learning apps, cloud tooling and AI-assisted security
-              pipelines.
+          <div className="hero-meta mt-6 grid gap-8 md:mt-8 md:grid-cols-[minmax(0,48ch)_1fr] md:items-end">
+            <p className="hero-lead text-lg leading-relaxed text-paper/85 md:text-xl">
+              Computer Science student in Vienna focused on backend development,
+              software engineering, application security, and data. Building
+              practical projects with Python, web technologies, AI, security
+              tooling, and data-driven applications.
             </p>
             <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm md:justify-end">
               <span className="hero-fade flex items-center gap-2.5 text-muted">
