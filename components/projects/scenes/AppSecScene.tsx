@@ -53,7 +53,7 @@ function View() {
         <span>Bandit + AI review</span>
       </div>
 
-      <div className="relative flex-1 overflow-hidden py-4 font-mono text-[clamp(10px,1.05vw,13px)] leading-[2.1]">
+      <div className="relative flex-1 overflow-hidden py-4 font-mono text-[clamp(9px,2.6vw,13px)] leading-[2.1] lg:text-[clamp(10px,1.05vw,13px)]">
         {LINES.map((line, i) => (
           <div key={i} className="as-line relative flex pr-4">
             {line.finding && (

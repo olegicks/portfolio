@@ -22,7 +22,10 @@ export default function Projects() {
       </div>
 
       {projects.map((project) => (
-        <ProjectPanel key={project.slug} project={project} />
+        // The wrapper keeps the id stable around the pinned panel, for navigation
+        <div key={project.slug} id={project.slug}>
+          <ProjectPanel project={project} />
+        </div>
       ))}
     </section>
   );

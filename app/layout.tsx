@@ -17,7 +17,7 @@ const body = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Oleh Shynkaryk",
+  title: "Portfolio O.S.",
   description:
     "Computer science student at the University of Vienna building ML apps, cloud tooling and security pipelines.",
 };

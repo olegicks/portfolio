@@ -2,6 +2,8 @@ export type SceneKey = "appsec" | "graph" | "car" | "cloud";
 
 export type Project = {
   slug: string;
+  /** Label in the navigation */
+  short: string;
   kind: string;
   title: string;
   summary: string;
@@ -14,6 +16,7 @@ export type Project = {
 export const projects: Project[] = [
   {
     slug: "ai-appsec-reviewer",
+    short: "AppSec Reviewer",
     kind: "Application security",
     title: "AI AppSec Code Reviewer",
     summary:
@@ -33,6 +36,7 @@ export const projects: Project[] = [
   },
   {
     slug: "github-project-analyst",
+    short: "Repo Analyst",
     kind: "Developer tooling",
     title: "GitHub Project Analyst",
     summary:
@@ -44,6 +48,7 @@ export const projects: Project[] = [
   },
   {
     slug: "car-price-predictor",
+    short: "Price Predictor",
     kind: "Machine learning",
     title: "Car Price Predictor",
     summary:
@@ -55,6 +60,7 @@ export const projects: Project[] = [
   },
   {
     slug: "cloudops-dashboard",
+    short: "CloudOps",
     kind: "Cloud and DevOps",
     title: "CloudOps Dashboard",
     summary:

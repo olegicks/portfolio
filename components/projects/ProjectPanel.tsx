@@ -4,6 +4,8 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { useLenis } from "lenis/react";
+import { scrollState } from "@/components/nav/scrollState";
 import type { Project } from "./data";
 import { scenes } from "./scenes";
 
@@ -13,11 +15,15 @@ export default function ProjectPanel({ project }: { project: Project }) {
   const root = useRef<HTMLElement>(null);
   const scene = scenes[project.scene];
   const SceneView = scene.View;
+  const lenis = useLenis();
+  const lenisRef = useRef(lenis);
+  lenisRef.current = lenis;
 
   useGSAP(
     () => {
       const el = root.current;
       if (!el) return;
+      const sceneEl = el.querySelector(".pp-scene")!;
 
       const mm = gsap.matchMedia();
       mm.add(
@@ -30,37 +36,107 @@ export default function ProjectPanel({ project }: { project: Project }) {
             desktop: boolean;
             reduce: boolean;
           };
-
-          const tl = gsap.timeline();
-          tl.from(
-            el.querySelectorAll(".pp-reveal"),
-            {
-              y: 40,
-              autoAlpha: 0,
-              duration: 0.7,
-              stagger: 0.08,
-              ease: "power3.out",
-            },
-            0,
-          );
-          tl.add(scene.build(el.querySelector(".pp-scene")!), 0.35);
+          const tl = scene.build(sceneEl).pause();
 
           if (reduce) {
             tl.progress(1);
             return;
           }
 
-          // Desktop: the panel pins and scrolling plays the scene.
-          // Mobile: no pinning, the scene plays as the panel passes through.
-          ScrollTrigger.create({
-            trigger: el,
-            animation: tl,
-            start: desktop ? "top top" : "top 70%",
-            end: desktop ? "+=160%" : "bottom 55%",
-            pin: desktop,
-            scrub: 0.8,
-            anticipatePin: 1,
+          // Text reveals once, as the panel arrives
+          gsap.from(el.querySelectorAll(".pp-reveal"), {
+            y: 40,
+            autoAlpha: 0,
+            duration: 1,
+            stagger: 0.08,
+            ease: "expo.out",
+            scrollTrigger: { trigger: el, start: "top 75%", once: true },
           });
+
+          // The scene only ever moves forward: scrolling back up never replays it
+          let reached = 0;
+          let released = false;
+          let pending = false;
+          let st: ScrollTrigger | undefined;
+
+          const advance = (p: number, duration = 1) => {
+            if (p <= reached) return;
+            reached = p;
+            gsap.to(tl, {
+              progress: p,
+              duration,
+              ease: "power2.out",
+              overwrite: true,
+            });
+          };
+
+          // Once the scene has played, drop the pin so the panel scrolls like normal content
+          // in both directions. Removing the pin spacer shortens the page above the viewport,
+          // so the scroll position is shifted by the same amount in the same frame: no visible jump.
+          const release = () => {
+            if (!desktop || released) return;
+            if (scrollState.navigating) {
+              // Don't disturb a navigation scroll in progress; finish after it lands
+              pending = true;
+              return;
+            }
+            pending = false;
+            requestAnimationFrame(() => {
+              if (released || !st) return;
+              const l = lenisRef.current;
+              const current = l ? l.animatedScroll : window.scrollY;
+
+              // Still inside the pinned stretch: try again when the user leaves it
+              if (current > st.start + 1 && current < st.end - 1) {
+                pending = true;
+                return;
+              }
+
+              released = true;
+              const dist = st.end - st.start;
+              const target = l ? l.targetScroll : current;
+              const isAbove = current >= st.end - 1;
+
+              st.kill(true);
+
+              if (isAbove) {
+                if (l) {
+                  l.scrollTo(current - dist, { immediate: true, force: true });
+                  // Keep any scroll momentum the user still had
+                  if (Math.abs(target - current) > 1)
+                    l.scrollTo(target - dist, { force: true });
+                } else {
+                  window.scrollTo(0, current - dist);
+                }
+              }
+              ScrollTrigger.refresh();
+            });
+          };
+
+          // Desktop: the panel pins while the scene plays. Mobile: no pinning.
+          st = ScrollTrigger.create({
+            trigger: el,
+            start: desktop ? "top top" : "top 75%",
+            end: desktop ? "+=150%" : "bottom 60%",
+            pin: desktop,
+            anticipatePin: 1,
+            onUpdate: (self) => advance(self.progress),
+            onLeave: () => {
+              advance(1, 0.8);
+              release();
+            },
+            onLeaveBack: () => {
+              if (reached >= 1) release();
+            },
+          });
+
+          const onArrive = (e: Event) => {
+            if ((e as CustomEvent<string>).detail === project.slug)
+              advance(1, 2.4);
+            if (pending) release();
+          };
+          window.addEventListener("section:arrive", onArrive);
+          return () => window.removeEventListener("section:arrive", onArrive);
         },
       );
     },
@@ -119,7 +195,7 @@ export default function ProjectPanel({ project }: { project: Project }) {
         </div>
 
         <div
-          className="pp-scene relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-contour/20 bg-panel lg:aspect-auto lg:h-[min(74svh,580px)]"
+          className="pp-scene relative aspect-[4/5] w-full sm:aspect-[4/3] overflow-hidden rounded-2xl border border-contour/20 bg-panel lg:aspect-auto lg:h-[min(74svh,580px)]"
           aria-hidden="true"
         >
           <SceneView />

@@ -120,7 +120,7 @@ function View() {
         />
       </svg>
 
-      <dl className="cp-stats absolute right-5 top-5 grid grid-cols-[auto_auto] gap-x-5 gap-y-1.5 rounded-xl bg-night/70 px-4 py-3 text-sm ring-1 ring-contour/20 backdrop-blur">
+      <dl className="cp-stats absolute right-3 top-3 grid grid-cols-[auto_auto] gap-x-4 gap-y-1 rounded-xl bg-night/70 px-3 py-2 text-xs sm:right-5 sm:top-5 sm:gap-x-5 sm:gap-y-1.5 sm:px-4 sm:py-3 sm:text-sm ring-1 ring-contour/20 backdrop-blur">
         <dt className="text-muted">Listings</dt>
         <dd className="cp-listings text-right font-mono tabular-nums">
           762,091

@@ -6,14 +6,16 @@ import gsap from "gsap";
 import { SplitText } from "gsap/SplitText";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { introState } from "@/components/background/state";
+import { useScrollTo } from "@/components/nav/useScrollTo";
 
 gsap.registerPlugin(SplitText, ScrollTrigger, useGSAP);
 
-const FieldCanvas = dynamic(() => import("./FieldCanvas"), { ssr: false });
+const OrbitScene = dynamic(() => import("./OrbitScene"), { ssr: false });
 
 export default function Hero() {
   const root = useRef<HTMLElement>(null);
-  const intro = useRef({ value: 0 });
+  const go = useScrollTo();
 
   useGSAP(
     (_ctx, contextSafe) => {
@@ -21,11 +23,32 @@ export default function Hero() {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
+      // In development React runs effects twice. Without this guard, the first (cancelled) run
+      // still builds after fonts load and leaves the fading elements stuck almost transparent.
+      let cancelled = false;
+
       const build = contextSafe!(() => {
+        if (cancelled) return;
         gsap.set(root.current, { autoAlpha: 1 });
 
+        // The background map dims as you leave the hero, then stays as a quiet backdrop
+        gsap.fromTo(
+          document.querySelector(".bg-field"),
+          { autoAlpha: 1 },
+          {
+            autoAlpha: 0.3,
+            ease: "none",
+            scrollTrigger: {
+              trigger: root.current!,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+            },
+          },
+        );
+
         if (reduce) {
-          intro.current.value = 1;
+          introState.value = 1;
           ScrollTrigger.refresh();
           return;
         }
@@ -39,11 +62,7 @@ export default function Hero() {
         // Intro sequence
         gsap
           .timeline({ defaults: { ease: "expo.out" } })
-          .to(
-            intro.current,
-            { value: 1, duration: 2.8, ease: "power2.inOut" },
-            0,
-          )
+          .to(introState, { value: 1, duration: 2.8, ease: "power2.inOut" }, 0)
           .from(
             name.chars,
             {
@@ -83,17 +102,17 @@ export default function Hero() {
           ease: "none",
           scrollTrigger: scrub,
         });
+        gsap.to(".hero-orbit", {
+          yPercent: -12,
+          autoAlpha: 0,
+          ease: "none",
+          scrollTrigger: scrub,
+        });
         gsap.to(".hero-meta", {
           y: -60,
           autoAlpha: 0,
           ease: "none",
           scrollTrigger: { ...scrub, end: "45% top" },
-        });
-        gsap.to(".hero-canvas", {
-          autoAlpha: 0.2,
-          scale: 1.08,
-          ease: "none",
-          scrollTrigger: scrub,
         });
 
         // Fonts can change layout heights, so re-measure all scroll positions
@@ -101,46 +120,66 @@ export default function Hero() {
       });
 
       document.fonts.ready.then(build);
+      return () => {
+        cancelled = true;
+      };
     },
     { scope: root },
   );
 
   return (
     <section
+      id="hero"
       ref={root}
       className="invisible relative h-[100svh] min-h-[620px] overflow-hidden"
     >
-      <div className="hero-canvas absolute inset-0" aria-hidden="true">
-        <FieldCanvas intro={intro} />
+      {/* Orbiting system: the background pulses radiate from its core */}
+      <div
+        className="hero-orbit pointer-events-none absolute inset-0"
+        aria-hidden="true"
+      >
+        <OrbitScene />
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-linear-to-t from-night/90 to-transparent" />
+      <div
+        aria-hidden="true"
+        className="hero-fade pointer-events-none absolute left-1/2 top-[30%] md:left-[72%] md:top-[42%]"
+      >
+        <span className="absolute left-0 top-0 -translate-x-1/2 translate-y-[3.6rem] whitespace-nowrap font-mono text-[11px] text-paper/55">
+          Vienna 48.21° N, 16.37° E
+        </span>
+      </div>
 
       <div className="relative z-10 flex h-full flex-col justify-between px-[clamp(1.25rem,4vw,3.5rem)] pb-[clamp(1.5rem,5vh,3.5rem)] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         <header className="hero-fade flex items-center justify-between">
-          <a
-            href="#top"
-            className="font-display text-xl font-semibold tracking-tight"
-          >
+          <span className="font-display text-xl font-semibold tracking-tight">
             O.S.
-          </a>
+          </span>
           <nav
             aria-label="Main"
-            className="flex gap-6 text-sm text-muted sm:gap-8"
+            className="flex gap-6 text-sm text-paper/75 sm:gap-8"
           >
-            <a className="link-underline hover:text-paper" href="#projects">
-              Projects
-            </a>
-            <a className="link-underline hover:text-paper" href="#about">
-              About
-            </a>
-            <a className="link-underline hover:text-paper" href="#contact">
-              Contact
-            </a>
+            {[
+              { id: "projects", label: "Projects" },
+              { id: "about", label: "About" },
+              { id: "contact", label: "Contact" },
+            ].map((l) => (
+              <a
+                key={l.id}
+                className="link-underline hover:text-paper"
+                href={`#${l.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  go(l.id);
+                }}
+              >
+                {l.label}
+              </a>
+            ))}
           </nav>
         </header>
 
         <div>
-          <h1 className="hero-name font-display text-[clamp(2.75rem,7.5vw,7rem)] font-semibold leading-[0.9] tracking-[-0.04em]">
+          <h1 className="hero-name font-display text-[clamp(2.4rem,6vw,5.75rem)] font-semibold leading-[0.9] tracking-[-0.04em]">
             {/* The line clips its letters; the padding keeps descenders visible */}
             <span className="hero-name-line -mb-[0.14em] block overflow-hidden pb-[0.14em]">
               Oleh Shynkaryk
@@ -148,14 +187,14 @@ export default function Hero() {
           </h1>
 
           <div className="hero-meta mt-6 grid gap-8 md:mt-8 md:grid-cols-[minmax(0,48ch)_1fr] md:items-end">
-            <p className="hero-lead text-lg leading-relaxed text-paper/85 md:text-xl">
+            <p className="hero-lead text-base leading-relaxed text-paper/85 sm:text-lg md:text-xl">
               Computer Science student in Vienna focused on backend development,
               software engineering, application security, and data. Building
               practical projects with Python, web technologies, AI, security
               tooling, and data-driven applications.
             </p>
             <div className="flex flex-wrap items-center gap-x-8 gap-y-3 text-sm md:justify-end">
-              <span className="hero-fade flex items-center gap-2.5 text-muted">
+              <span className="hero-fade flex items-center gap-2.5 text-paper/75">
                 <span className="status-dot" aria-hidden="true" />
                 Open to internships in Vienna
               </span>
@@ -167,7 +206,14 @@ export default function Hero() {
               >
                 GitHub
               </a>
-              <a className="hero-fade link-underline" href="#projects">
+              <a
+                className="hero-fade link-underline"
+                href="#projects"
+                onClick={(e) => {
+                  e.preventDefault();
+                  go("projects");
+                }}
+              >
                 See projects
               </a>
             </div>

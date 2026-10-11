@@ -78,3 +78,34 @@ body {
     animation: none;
   }
 }
+
+/* Page gutter used across sections */
+@utility px-pad {
+  padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+}
+
+/* Email link: each letter rolls up to an amber copy on hover */
+.email-roll {
+  line-height: 1.2;
+}
+.roll-char {
+  display: inline-flex;
+  flex-direction: column;
+  height: 1.2em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.roll-char > span {
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+  transition-delay: calc(var(--i) * 14ms);
+}
+.email-roll:hover .roll-char > span,
+.email-roll:focus-visible .roll-char > span {
+  transform: translateY(-100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .roll-char > span {
+    transition: none;
+  }
+}

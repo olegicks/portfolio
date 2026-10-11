@@ -1,10 +1,9 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-
-type Props = { intro: RefObject<{ value: number }> };
+import { heroFocus, introState } from "./state";
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -23,6 +22,8 @@ const fragmentShader = /* glsl */ `
   uniform vec3 uBg;
   uniform vec3 uLine;
   uniform vec3 uAccent;
+  uniform float uPulseOn;
+  uniform vec2 uFocus; // where the pulses start: the centre of the orbit in the hero
   varying vec2 vUv;
 
   // 2D simplex noise (Ashima Arts)
@@ -88,10 +89,24 @@ const fragmentShader = /* glsl */ `
     float reveal = 1.0 - smoothstep(radius - 0.35, radius, r);
     float front = (1.0 - smoothstep(0.0, 0.3, abs(r - (radius - 0.18)))) * (1.0 - uIntro);
 
+    // Survey pulses: rings radiate from the marker on a loop, lighting the lines they cross.
+    // They fade out as you scroll past the hero.
+    vec2 po = (uFocus - 0.5) * vec2(aspect, 1.0);
+    float pd = length(p - po);
+    float pulse = 0.0;
+    for (int k = 0; k < 3; k++) {
+      float ph = fract(uTime * 0.18 + float(k) / 3.0);
+      float ring = 1.0 - smoothstep(0.0, 0.07, abs(pd - ph * 1.8));
+      pulse += ring * (1.0 - ph) * (1.0 - ph);
+    }
+    pulse *= uPulseOn * uIntro * (1.0 - smoothstep(0.0, 0.6, uScroll));
+
     vec3 col = uBg + h * 0.05 * uLine;
-    float lineAmt = (minor * 0.2 + major * 0.5) * reveal;
-    vec3 lineCol = mix(uLine, uAccent, clamp(hill * 1.2 + front * 1.6, 0.0, 1.0));
-    col = mix(col, lineCol, clamp(lineAmt * (1.0 + hill * 0.9 + front), 0.0, 1.0));
+    col += uAccent * pulse * 0.035;
+    float lineAmt = (minor * 0.26 + major * 0.55) * reveal;
+    float glow = clamp(hill * 1.2 + front * 1.6 + pulse * 2.0, 0.0, 1.0);
+    vec3 lineCol = mix(uLine, uAccent, glow);
+    col = mix(col, lineCol, clamp(lineAmt * (1.0 + hill * 0.9 + front + pulse * 1.5), 0.0, 1.0));
 
     float vig = smoothstep(1.3, 0.2, length(p * vec2(0.9, 1.1)));
     col *= mix(0.7, 1.0, vig);
@@ -101,7 +116,7 @@ const fragmentShader = /* glsl */ `
   }
 `;
 
-function Field({ intro }: Props) {
+function Field() {
   const size = useThree((s) => s.size);
   const mouse = useRef(new THREE.Vector2(0.5, 0.5));
   const target = useRef(new THREE.Vector2(0.5, 0.5));
@@ -120,8 +135,10 @@ function Field({ intro }: Props) {
       uBg: { value: new THREE.Color("#0f1b2e") },
       uLine: { value: new THREE.Color("#7f98bc") },
       uAccent: { value: new THREE.Color("#f2b33d") },
+      uPulseOn: { value: reduce ? 0 : 1 },
+      uFocus: { value: new THREE.Vector2(heroFocus.x, heroFocus.y) },
     }),
-    [],
+    [reduce],
   );
 
   useEffect(() => {
@@ -141,7 +158,9 @@ function Field({ intro }: Props) {
     mouse.current.lerp(target.current, 1 - Math.pow(0.002, dt));
     uniforms.uMouse.value.copy(mouse.current);
     uniforms.uRes.value.set(size.width, size.height);
-    uniforms.uIntro.value = intro.current?.value ?? 1;
+    uniforms.uIntro.value = introState.value;
+    uniforms.uFocus.value.set(heroFocus.x, heroFocus.y);
+    // The terrain drifts slowly as the page scrolls
     uniforms.uScroll.value = window.scrollY / window.innerHeight;
   });
 
@@ -159,29 +178,13 @@ function Field({ intro }: Props) {
   );
 }
 
-export default function FieldCanvas({ intro }: Props) {
-  const wrap = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(true);
-
-  // Stop rendering when the hero is scrolled out of view
-  useEffect(() => {
-    if (!wrap.current) return;
-    const io = new IntersectionObserver(([entry]) =>
-      setVisible(entry.isIntersecting),
-    );
-    io.observe(wrap.current);
-    return () => io.disconnect();
-  }, []);
-
+export default function FieldCanvas() {
   return (
-    <div ref={wrap} className="h-full w-full">
-      <Canvas
-        frameloop={visible ? "always" : "never"}
-        dpr={[1, 1.75]}
-        gl={{ antialias: false, powerPreference: "high-performance" }}
-      >
-        <Field intro={intro} />
-      </Canvas>
-    </div>
+    <Canvas
+      dpr={[1, 1.5]}
+      gl={{ antialias: false, powerPreference: "high-performance" }}
+    >
+      <Field />
+    </Canvas>
   );
 }
