@@ -158,9 +158,13 @@ function Field() {
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
+  const material = useRef<THREE.ShaderMaterial>(null);
+
   useFrame((_, delta) => {
     // This canvas always renders, so it times frames for the whole page
     sampleFrame(delta);
+    if (!material.current) return;
+    const uniforms = material.current.uniforms;
     const dt = Math.min(delta, 0.1);
     if (!reduce) uniforms.uTime.value += dt;
     // Frame-rate independent easing toward the cursor
@@ -177,6 +181,7 @@ function Field() {
     <mesh frustumCulled={false}>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
+        ref={material}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}

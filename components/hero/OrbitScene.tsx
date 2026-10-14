@@ -95,9 +95,9 @@ function System({ labels }: { labels: RefObject<(HTMLSpanElement | null)[]> }) {
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     [],
   );
-  const glowTex = useMemo(makeGlowTexture, []);
+  const glowTex = useMemo(() => makeGlowTexture(), []);
   const orbitGeos = useMemo(() => ORBITS.map((o) => circleGeometry(o.r)), []);
-  const beltGeo = useMemo(beltGeometry, []);
+  const beltGeo = useMemo(() => beltGeometry(), []);
   const world = useMemo(() => new THREE.Vector3(), []);
   const core = useMemo(() => new THREE.Vector3(), []);
 

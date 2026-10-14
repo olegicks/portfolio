@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
@@ -17,7 +17,9 @@ export default function ProjectPanel({ project }: { project: Project }) {
   const SceneView = scene.View;
   const lenis = useLenis();
   const lenisRef = useRef(lenis);
-  lenisRef.current = lenis;
+  useEffect(() => {
+    lenisRef.current = lenis;
+  }, [lenis]);
 
   useGSAP(
     () => {
@@ -57,7 +59,6 @@ export default function ProjectPanel({ project }: { project: Project }) {
           let reached = 0;
           let released = false;
           let pending = false;
-          let st: ScrollTrigger | undefined;
 
           const advance = (p: number, duration = 1) => {
             if (p <= reached) return;
@@ -82,7 +83,7 @@ export default function ProjectPanel({ project }: { project: Project }) {
             }
             pending = false;
             requestAnimationFrame(() => {
-              if (released || !st) return;
+              if (released) return;
               const l = lenisRef.current;
               const current = l ? l.animatedScroll : window.scrollY;
 
@@ -114,7 +115,7 @@ export default function ProjectPanel({ project }: { project: Project }) {
           };
 
           // Desktop: the panel pins while the scene plays. Mobile: no pinning.
-          st = ScrollTrigger.create({
+          const st = ScrollTrigger.create({
             trigger: el,
             start: desktop ? "top top" : "top 75%",
             end: desktop ? "+=150%" : "bottom 60%",
