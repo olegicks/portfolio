@@ -5,21 +5,20 @@ focused on backend development, application security, data and applied AI. The s
 four end-to-end projects through animated, scroll-driven scenes, followed by experience,
 education, skills and contact details.
 
-![Hero section with the topographic background and the orbit scene](docs/screenshots/hero.jpg)
+![Hero section with the shader background and the orbit scene](docs/screenshots/hero.jpg)
 
 ![Project section: the GitHub Project Analyst scene after it has played](docs/screenshots/project.jpg)
 
 ## Overview
 
-The page is a single, statically prerendered route built with Next.js and React. Its visual
-identity is a survey map: a topographic contour field rendered in a fragment shader sits behind
-the whole page, and the hero shows an orbiting system whose planets stand for the main areas of
-work. Each project has its own scene that assembles itself as the section comes into view.
+The page is a single, statically prerendered route built with Next.js and React. A quiet,
+slowly drifting terrain rendered in a fragment shader sits behind the whole page, and the hero
+shows an orbiting system whose planets stand for the main areas of work. Each project has its own scene that assembles itself as the section comes into view.
 
 ### Sections
 
-- **Hero.** Name, short introduction and an interactive orbit scene. On load, the map is
-  surveyed outward from the centre while the headline and introduction animate in.
+- **Hero.** Name, short introduction and an interactive orbit scene that grows in while the
+  headline and introduction animate in.
 - **Selected work.** Four projects, each with a summary, technology stack, live demo and
   source links. On desktop the panel pins while its scene plays, then releases so the page
   scrolls normally in both directions.
@@ -44,11 +43,11 @@ work. Each project has its own scene that assembles itself as the section comes 
 The page is designed to stay smooth on older and low-cost hardware without removing or
 simplifying any animation.
 
-- **Adaptive render resolution.** A shared quality governor
+- **Adaptive quality.** A shared quality governor
   ([`components/perf/quality.ts`](components/perf/quality.ts)) picks a starting level from the
   device (CPU cores, memory, software rendering) and then tunes it from measured frame times.
-  It scales only the pixel ratio of the WebGL canvases, so motion and timing stay identical
-  while the GPU load drops on machines that need it.
+  On high-density displays it lowers the pixel ratio of the hero orbit scene when needed, so
+  motion and timing stay identical while the GPU load drops.
 - **Cheaper compositing on slow devices.** At the lowest levels, translucent panels that blur
   the moving background switch to near-solid fills, removing a per-frame blur pass.
 - **WebGL fallback.** Both canvases are wrapped in an error boundary. If WebGL is unavailable or
@@ -66,7 +65,7 @@ app/
   page.tsx                Page composition
   globals.css             Theme tokens and shared styles
 components/
-  background/             Full-page topographic shader
+  background/             Full-page background shader
   hero/                   Hero section and orbit scene
   projects/               Project panels, content and animated scenes
   about/  contact/  nav/  Remaining sections and navigation
