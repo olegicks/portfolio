@@ -128,7 +128,7 @@ export default function Nav() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 border-b border-contour/10 bg-night/70 pt-[env(safe-area-inset-top)] backdrop-blur-md transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
+        className={`fixed inset-x-0 top-0 z-50 border-b border-contour/10 bg-night/70 pt-[env(safe-area-inset-top)] backdrop-blur-md lite-solid transition-transform duration-700 ease-[cubic-bezier(0.19,1,0.22,1)] ${
           shown || open ? "translate-y-0" : "-translate-y-full"
         }`}
       >
@@ -192,7 +192,7 @@ export default function Nav() {
         id="mobile-menu"
         ref={menu}
         inert={!open}
-        className={`px-pad fixed inset-0 z-40 flex flex-col justify-center bg-night/95 backdrop-blur-lg transition-opacity duration-500 lg:hidden ${
+        className={`px-pad fixed inset-0 z-40 flex flex-col justify-center bg-night/95 backdrop-blur-lg lite-solid transition-opacity duration-500 lg:hidden ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >

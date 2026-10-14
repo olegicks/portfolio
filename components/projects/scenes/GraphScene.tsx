@@ -101,7 +101,7 @@ function View() {
           ))}
         </svg>
 
-        <div className="gr-card absolute bottom-3 left-5 rounded-xl bg-night/80 px-4 py-3 text-xs ring-1 ring-signal/40 backdrop-blur">
+        <div className="gr-card absolute bottom-3 left-5 rounded-xl bg-night/80 px-4 py-3 text-xs ring-1 ring-signal/40 backdrop-blur lite-solid">
           <p className="font-mono text-sm text-signal">routes.py</p>
           <p className="mt-1 text-paper/75">6 functions, 3 imports</p>
           <p className="text-muted">4 API endpoints</p>

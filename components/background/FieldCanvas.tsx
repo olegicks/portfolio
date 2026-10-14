@@ -4,6 +4,13 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { heroFocus, introState } from "./state";
+import {
+  canvasDpr,
+  initQuality,
+  sampleFrame,
+  useQualityScale,
+} from "@/components/perf/quality";
+import WebGLBoundary from "@/components/perf/WebGLBoundary";
 
 const vertexShader = /* glsl */ `
   varying vec2 vUv;
@@ -152,6 +159,8 @@ function Field() {
   }, []);
 
   useFrame((_, delta) => {
+    // This canvas always renders, so it times frames for the whole page
+    sampleFrame(delta);
     const dt = Math.min(delta, 0.1);
     if (!reduce) uniforms.uTime.value += dt;
     // Frame-rate independent easing toward the cursor
@@ -179,12 +188,17 @@ function Field() {
 }
 
 export default function FieldCanvas() {
+  const scale = useQualityScale();
   return (
-    <Canvas
-      dpr={[1, 1.5]}
-      gl={{ antialias: false, powerPreference: "high-performance" }}
-    >
-      <Field />
-    </Canvas>
+    <WebGLBoundary fallback={<div className="field-fallback absolute inset-0" />}>
+      <Canvas
+        // The terrain is soft, so it holds up well at a lower resolution on slow machines
+        dpr={canvasDpr(scale, 1.5)}
+        gl={{ antialias: false, powerPreference: "high-performance" }}
+        onCreated={({ gl }) => initQuality(gl.getContext())}
+      >
+        <Field />
+      </Canvas>
+    </WebGLBoundary>
   );
 }

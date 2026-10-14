@@ -79,6 +79,29 @@ body {
   }
 }
 
+/* Background when WebGL is unavailable: a still version of the lit map centre and vignette */
+.field-fallback {
+  background:
+    radial-gradient(
+      ellipse 60% 55% at 72% 42%,
+      rgb(127 152 188 / 0.12),
+      transparent 70%
+    ),
+    radial-gradient(ellipse at center, transparent 40%, rgb(0 0 0 / 0.3)),
+    var(--color-night);
+}
+
+/*
+ * Set by the render-quality governor on slow machines. Re-blurring the page behind a panel
+ * on every frame of a moving canvas is one of the most expensive things a browser does,
+ * so those panels turn into near-solid fills instead.
+ */
+[data-lite] .lite-solid {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background-color: rgb(15 27 46 / 0.94);
+}
+
 /* Page gutter used across sections */
 @utility px-pad {
   padding-inline: clamp(1.25rem, 4vw, 3.5rem);

@@ -4,6 +4,8 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
 import { heroFocus, introState } from "@/components/background/state";
+import { canvasDpr, useQualityScale } from "@/components/perf/quality";
+import WebGLBoundary from "@/components/perf/WebGLBoundary";
 
 // Each planet is one of the areas I work in
 const ORBITS = [
@@ -245,6 +247,7 @@ export default function OrbitScene() {
   const wrap = useRef<HTMLDivElement>(null);
   const labels = useRef<(HTMLSpanElement | null)[]>([]);
   const [visible, setVisible] = useState(true);
+  const scale = useQualityScale();
 
   // Pause rendering once the hero is out of view
   useEffect(() => {
@@ -258,14 +261,17 @@ export default function OrbitScene() {
 
   return (
     <div ref={wrap} className="relative h-full w-full">
-      <Canvas
-        frameloop={visible ? "always" : "never"}
-        camera={{ position: [0, 0, 12], fov: 35 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-      >
-        <System labels={labels} />
-      </Canvas>
+      <WebGLBoundary>
+        <Canvas
+          frameloop={visible ? "always" : "never"}
+          camera={{ position: [0, 0, 12], fov: 35 }}
+          // Thin orbit lines need more pixels than the terrain, so this never drops below 1x
+          dpr={canvasDpr(scale, 2, 1)}
+          gl={{ antialias: true, alpha: true }}
+        >
+          <System labels={labels} />
+        </Canvas>
+      </WebGLBoundary>
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {ORBITS.map((o, i) => (
           <span
