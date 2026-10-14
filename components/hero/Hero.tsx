@@ -140,14 +140,6 @@ export default function Hero() {
       >
         <OrbitScene />
       </div>
-      <div
-        aria-hidden="true"
-        className="hero-fade pointer-events-none absolute left-1/2 top-[30%] md:left-[72%] md:top-[42%]"
-      >
-        <span className="absolute left-0 top-0 -translate-x-1/2 translate-y-[3.6rem] whitespace-nowrap font-mono text-[11px] text-paper/55">
-          Vienna 48.21° N, 16.37° E
-        </span>
-      </div>
 
       <div className="relative z-10 flex h-full flex-col justify-between px-[clamp(1.25rem,4vw,3.5rem)] pb-[clamp(1.5rem,5vh,3.5rem)] pt-[calc(env(safe-area-inset-top)+1.5rem)]">
         <header className="hero-fade flex items-center justify-between">
