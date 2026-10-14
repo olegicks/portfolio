@@ -4,12 +4,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { heroFocus, introState } from "./state";
-import {
-  canvasDpr,
-  initQuality,
-  sampleFrame,
-  useQualityScale,
-} from "@/components/perf/quality";
+import { initQuality, sampleFrame } from "@/components/perf/quality";
 import WebGLBoundary from "@/components/perf/WebGLBoundary";
 
 const vertexShader = /* glsl */ `
@@ -158,14 +153,14 @@ function Field() {
     return () => window.removeEventListener("pointermove", onMove);
   }, []);
 
-  const material = useRef<THREE.ShaderMaterial>(null);
-
+  // The frame loop updates the memoized uniforms in place. Keep it this way: routing the
+  // updates through the material instead visibly changes how the background renders.
+  // eslint-disable-next-line react-hooks/immutability
   useFrame((_, delta) => {
     // This canvas always renders, so it times frames for the whole page
     sampleFrame(delta);
-    if (!material.current) return;
-    const uniforms = material.current.uniforms;
     const dt = Math.min(delta, 0.1);
+    // eslint-disable-next-line react-hooks/immutability
     if (!reduce) uniforms.uTime.value += dt;
     // Frame-rate independent easing toward the cursor
     mouse.current.lerp(target.current, 1 - Math.pow(0.002, dt));
@@ -181,7 +176,6 @@ function Field() {
     <mesh frustumCulled={false}>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
-        ref={material}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         uniforms={uniforms}
@@ -193,12 +187,10 @@ function Field() {
 }
 
 export default function FieldCanvas() {
-  const scale = useQualityScale();
   return (
     <WebGLBoundary fallback={<div className="field-fallback absolute inset-0" />}>
       <Canvas
-        // The terrain is soft, so it holds up well at a lower resolution on slow machines
-        dpr={canvasDpr(scale, 1.5)}
+        dpr={[1, 1.5]}
         gl={{ antialias: false, powerPreference: "high-performance" }}
         onCreated={({ gl }) => initQuality(gl.getContext())}
       >
